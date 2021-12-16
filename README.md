@@ -24,8 +24,7 @@ The HTML file works upon the [Azure-Samples repository](https://github.com/Azure
 
 ## Get started
 
-1. Get the full path of `/HTML/synthesis.html`, copy that path, & open it in the browser
-2. In `/Azure Function/local.settings.json`, add your Speech Region and Speech key under values as such:
+1. In `/Azure Function/local.settings.json`, add your Speech Region and Speech key under values as such:
 
     ``` diff
     {
@@ -42,9 +41,21 @@ The HTML file works upon the [Azure-Samples repository](https://github.com/Azure
     }
     ```
 
-3. From your command line, navigate inside the /Azure Function/ folder & run `npm start`. 
+2. From your command line, navigate inside the /Azure Function/ folder & run `npm start`. 
 
     You should see the Azure Functions Core Tools run, and the function should be running at address `http://localhost:7071/api/TTSAuthorizationToken`. If your address is different, you may have to adjust the HTML to make requests to your correct path.
+
+3. Get the full path of `/HTML/synthesis.html`, copy that path, & open it in the browser 
+
+4. Press the `Update Voice List` blue button to get the list of voices available. 
+
+5. Done! You can add text and start synthesis when you are ready! 
+
+#### Common issues
+
+1. If speech is not working, verify that you have added your keys and region to local.settings.json
+2. If speech is not working after clicking start synthesis, ensure that the update voice list button was click and that a voice is selected.
+3. Ensure that CORS is enabled in local.settings.json to allow requests from a different origin to be accepted by Azure Functions
 
 ## Resources
 
