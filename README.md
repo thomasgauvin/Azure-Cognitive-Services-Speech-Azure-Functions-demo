@@ -1,4 +1,3 @@
-![](2021-12-16-10-10-28.png)
 
 # Sample Repository for the Microsoft Cognitive Services Speech SDK
 
@@ -8,6 +7,8 @@ text-to-speech in the browser.
 This project consists of 2 parts: the HTML file to demonstrate the usage in browser with Javascript, and the NodeJS Azure Function used to authorize the HTML file to use Azure Cognitive Services.
 
 The HTML file works upon the [Azure-Samples repository](https://github.com/Azure-Samples/cognitive-services-speech-sdk), with removed features for legibility and understandability. The full sample, including an Express backend server, can be found here: [cognitive-services-speech-sdk/synthesis.html at master · Azure-Samples/cognitive-services-speech-sdk (github.com)](https://github.com/Azure-Samples/cognitive-services-speech-sdk/blob/master/samples/js/browser/synthesis.html)
+
+![](2021-12-16-10-10-28.png)
 
 ## Prerequisites
 
