@@ -70,6 +70,7 @@
       (microsoft.cognitiveservices.speech.sdk.bundle.js missing).</h1>
   </div>
 
+  <!-- HTML Content -->
   <div id="content" style="display:none">
     <table>
       <tr>
@@ -77,22 +78,12 @@
         <td><h1 style="font-weight:500;">Microsoft Cognitive Services Speech SDK JavaScript Sample for Speech Synthesis</h1></td>
       </tr>
       <tr>
-        <td align="right">
-          <label for="subscriptionKey">
-            <a href="https://docs.microsoft.com/azure/cognitive-services/speech-service/get-started"
-               rel="noreferrer noopener"
-               target="_blank">Subscription Key</a>
-          </label>
-        </td>
-        <td><input id="subscriptionKey" type="text" size="40" placeholder="YourSubscriptionKey"></td>
-      </tr>
-      <tr>
         <td align="right"><label for="regionOptions">Region</label></td>
         <td>
 <!--          see https://aka.ms/csspeech/region for more details-->
           <select id="regionOptions">
-            <option value="westus" selected="selected">West US</option>
-            <option value="westus2">West US2</option>
+            <option value="westus">West US</option>
+            <option value="westus2" selected="selected">West US2</option>
             <option value="eastus">East US</option>
             <option value="eastus2">East US2</option>
             <option value="centralus">Central US</option>
@@ -155,27 +146,20 @@
           <button id="startSynthesisAsyncButton">Start synthesis</button>
           <button id="pauseButton">Pause</button>
           <button id="resumeButton">Resume</button>
-          <button id="downloadButton">Download</button>
         </td>
       </tr>
       <tr>
         <td align="right" valign="top"><label for="resultsDiv">Results</label></td>
         <td><textarea id="resultsDiv" readonly style="display: inline-block;width:500px;height:50px"></textarea></td>
       </tr>
+      
       <tr>
-        <td align="right" valign="top"><label for="talkingHeadDiv">
-          <a href="https://docs.microsoft.com/azure/cognitive-services/speech-service/how-to-speech-synthesis-viseme?pivots=programming-language-javascript"
-            rel="noreferrer noopener"
-            target="_blank">Talking Head</a></label></td>
-        <td><div id="talkingHeadDiv" style="display: inline-block;width:800px;"></div></td>
+        <td align="right" valign="top"><label for="highlightDiv">Highlight</label></td>
+        <td><div id="highlightDiv" style="display: inline-block;width:800px;"></div></td>
       </tr>
       <tr>
         <td align="right" valign="top"><label for="eventsDiv">Events</label></td>
         <td><textarea id="eventsDiv" readonly style="display: inline-block;width:500px;height:200px"></textarea></td>
-      </tr>
-      <tr>
-        <td align="right" valign="top"><label for="highlightDiv">Highlight</label></td>
-        <td><div id="highlightDiv" style="display: inline-block;width:800px;"></div></td>
       </tr>
     </table>
   </div>
@@ -192,14 +176,16 @@
       // An authorization token is a more secure method to authenticate for a browser deployment as
       // it allows the subscription keys to be kept secure on a server and a 10 minute use token to be
       // handed out to clients from an endpoint that can be protected from unauthorized access.
-      var authorizationEndpoint = "http://localhost:3001/api/get-speech-token";
+      var authorizationEndpoint = "http://localhost:7071/api/TTSAuthorizationToken";
 
       async function RequestAuthorizationToken() {
         if (authorizationEndpoint) {
           try {
-            const res = await axios.get(authorizationEndpoint);
-            const token = res.data.token;
-            const region = res.data.region;
+            const res = await fetch(authorizationEndpoint);
+            const data = await res.json()
+            console.log(data);
+            const token = data.token;
+            const region = data.region;
             regionOptions.value = region;
             authorizationToken = token;
 
@@ -230,7 +216,7 @@
         eventsDiv,
         talkingHeadDiv,
         highlightDiv;
-    var startSynthesisAsyncButton, pauseButton, resumeButton, downloadButton;
+    var startSynthesisAsyncButton, pauseButton, resumeButton;
     var updateVoiceListButton;
 
     // subscription key and region for speech services.
@@ -267,7 +253,6 @@
       updateVoiceListButton = document.getElementById("updateVoiceListButton");
       pauseButton = document.getElementById("pauseButton");
       resumeButton = document.getElementById("resumeButton");
-      downloadButton = document.getElementById("downloadButton");
       subscriptionKey = document.getElementById("subscriptionKey");
       regionOptions = document.getElementById("regionOptions");
       resultsDiv = document.getElementById("resultsDiv");
@@ -277,6 +262,7 @@
       talkingHeadDiv = document.getElementById("talkingHeadDiv");
       highlightDiv = document.getElementById("highlightDiv");
 
+      //set highlight text & highlighted portion
       setInterval(function () {
         if (player !== undefined) {
           const currentTime = player.currentTime;
@@ -298,6 +284,7 @@
         }
       }, 50);
 
+      //get list of voices
       updateVoiceListButton.addEventListener("click", function () {
         var request = new XMLHttpRequest();
         request.open('GET',
@@ -338,35 +325,29 @@
         request.send()
       });
 
+      //set pause button
       pauseButton.addEventListener("click", function () {
         player.pause();
         pauseButton.disabled = true;
         resumeButton.disabled = false;
       });
 
+      //set pause button
       resumeButton.addEventListener("click", function () {
         player.resume();
         pauseButton.disabled = false;
         resumeButton.disabled = true;
       });
 
+      //start synthesis of speech from text
       startSynthesisAsyncButton.addEventListener("click", function () {
         resultsDiv.innerHTML = "";
         eventsDiv.innerHTML = "";
         wordBoundaryList = [];
         synthesisText = document.getElementById("synthesisText");
 
-        // if we got an authorization token, use the token. Otherwise use the provided subscription key
-        var speechConfig;
-        if (authorizationToken) {
-          speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(authorizationToken, regionOptions.value);
-        } else {
-          if (subscriptionKey.value === "" || subscriptionKey.value === "subscription") {
-            alert("Please enter your Microsoft Cognitive Services Speech subscription key!");
-            return;
-          }
-          speechConfig = SpeechSDK.SpeechConfig.fromSubscription(subscriptionKey.value, regionOptions.value);
-        }
+        // use authorization token to access speech service
+        var speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(authorizationToken, regionOptions.value);        
 
         speechConfig.speechSynthesisVoiceName = voiceOptions.value;
         speechConfig.speechSynthesisOutputFormat = formatOptions.value;
@@ -380,7 +361,6 @@
           window.console.log("playback finished");
           eventsDiv.innerHTML += "playback finished" + "\r\n";
           startSynthesisAsyncButton.disabled = false;
-          downloadButton.disabled = false;
           pauseButton.disabled = true;
           resumeButton.disabled = true;
           wordBoundaryList = [];
@@ -424,7 +404,6 @@
           window.console.log(e);
           eventsDiv.innerHTML += str + "\r\n";
           startSynthesisAsyncButton.disabled = false;
-          downloadButton.disabled = false;
           pauseButton.disabled = true;
           resumeButton.disabled = true;
         };
@@ -436,13 +415,6 @@
           eventsDiv.innerHTML += "(WordBoundary), Text: " + e.text + ", Audio offset: " + e.audioOffset / 10000 + "ms." + "\r\n";
           wordBoundaryList.push(e);
         };
-
-        synthesizer.visemeReceived = function (s, e) {
-          window.console.log(e);
-          eventsDiv.innerHTML += "(Viseme), Audio offset: " + e.audioOffset / 10000 + "ms. Viseme ID: " + e.visemeId + '\n';
-          talkingHeadDiv.innerHTML = e.animation.replaceAll("begin=\"0.5s\"", "begin=\"indefinite\"");
-          $("svg").width('500px').height('500px');
-        }
 
         synthesizer.bookmarkReached = function (s, e) {
           window.console.log(e);
@@ -461,7 +433,6 @@
         };
         const err_cb = function (err) {
           startSynthesisAsyncButton.disabled = false;
-          downloadButton.disabled = false;
           phraseDiv.innerHTML += err;
           window.console.log(err);
           synthesizer.close();
@@ -474,7 +445,6 @@
         }
 
         startSynthesisAsyncButton.disabled = true;
-        downloadButton.disabled = true;
 
         if (isSsml.checked) {
           synthesizer.speakSsmlAsync(synthesisText.value,
@@ -487,79 +457,9 @@
         }
       });
 
-      downloadButton.addEventListener("click", function () {
-        resultsDiv.innerHTML = "";
-        eventsDiv.innerHTML = "";
-        synthesisText = document.getElementById("synthesisText");
-
-        var speechConfig;
-
-        // if we got an authorization token, use the token. Otherwise use the provided subscription key
-        if (authorizationToken) {
-          speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(authorizationToken, regionOptions.value);
-        } else {
-          if (subscriptionKey.value === "" || subscriptionKey.value === "subscription") {
-            alert("Please enter your Microsoft Cognitive Services Speech subscription key!");
-            return;
-          }
-          speechConfig = SpeechSDK.SpeechConfig.fromSubscription(subscriptionKey.value, regionOptions.value);
-        }
-
-        speechConfig.speechSynthesisVoiceName = voiceOptions.value;
-        speechConfig.speechSynthesisOutputFormat = formatOptions.value;
-
-        synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, null);
-
-        synthesizer.SynthesisCanceled = function (s, e) {
-          const cancellationDetails = SpeechSDK.CancellationDetails.fromResult(e.result);
-          let str = "(cancel) Reason: " + SpeechSDK.CancellationReason[cancellationDetails.reason];
-          if (cancellationDetails.reason === SpeechSDK.CancellationReason.Error) {
-            str += ": " + e.result.errorDetails;
-          }
-          window.console.log(e);
-          eventsDiv.innerHTML += str + "\r\n";
-          resultsDiv.innerHTML = str;
-          startSynthesisAsyncButton.disabled = false;
-          downloadButton.disabled = false;
-          pauseButton.disabled = true;
-          resumeButton.disabled = true;
-        };
-
-        synthesizer.synthesisCompleted = function (s, e) {
-            resultsDiv.innerHTML = "synthesis finished";
-            synthesizer.close();
-            a = document.createElement('a');
-            url = window.URL.createObjectURL(new Blob([e.result.audioData]));
-            a.href = url;
-            a.download = 'synth.' + getExtensionFromFormat(formatOptions.options[formatOptions.selectedIndex].text);
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(function () {
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-            }, 0);
-            startSynthesisAsyncButton.disabled = false;
-            downloadButton.disabled = false;
-        };
-
-        if (!synthesisText.value) {
-          alert("Please enter synthesis content.");
-        }
-
-        startSynthesisAsyncButton.disabled = true;
-        downloadButton.disabled = true;
-
-        if (isSsml.checked) {
-          synthesizer.speakSsmlAsync(synthesisText.value);
-        } else {
-          synthesizer.speakTextAsync(synthesisText.value);
-        }
-      });
-
       Initialize(async function (speechSdk) {
         SpeechSDK = speechSdk;
         startSynthesisAsyncButton.disabled = false;
-        downloadButton.disabled = false;
         pauseButton.disabled = true;
         resumeButton.disabled = true;
 
