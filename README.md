@@ -1,15 +1,3 @@
----
-page_type: sample
-languages:
-- javascript
-- nodejs
-- html
-name: "Azure Cognitive Services Speech Azure Functions demo"
-description: "Add Text-to-Speech to your website using Azure Cognitive Services and Azure Functions to authorize requests."
-products:
-- azure
-- azure-cognitive-services
----
 
 # Sample Repository for the Microsoft Cognitive Services Speech SDK
 
