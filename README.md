@@ -1,3 +1,4 @@
+![](2021-12-16-10-10-28.png)
 
 # Sample Repository for the Microsoft Cognitive Services Speech SDK
 
