@@ -10,7 +10,7 @@ The HTML file works upon the [Azure-Samples repository](https://github.com/Azure
 
 ## How it works
 
-Azure Cognitive Services can be accessed using a subscription key. However, this is not recommended when calling Cognitive Services from the browser, because this would require making keys publically accessible by end users.
+Azure Cognitive Services can be accessed using a subscription key. However, this is not recommended when calling Cognitive Services from the browser, because this would require making keys publicly accessible by end users.
 
 Instead, we can use Azure Functions to create an authorization token that can be used by the browser JavaScript to make calls directly to Cognitive Services. 
 
