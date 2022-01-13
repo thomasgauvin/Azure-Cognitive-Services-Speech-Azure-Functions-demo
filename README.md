@@ -1,5 +1,5 @@
 
-# Sample Repository for the Microsoft Cognitive Services Speech SDK
+# Add Text-to-Speech to your website using Azure Cognitive Services and Azure Functions to authorize requests.
 
 This project uses Azure Cogntive Services Speech synthesis and Azure Functions to provide 
 text-to-speech in the browser. 
