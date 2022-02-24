@@ -181,6 +181,8 @@
         <td><textarea id="eventsDiv" readonly style="display: inline-block;width:500px;height:200px"></textarea></td>
       </tr>
     </table>
+
+    
   </div>
 
   <!-- Speech SDK reference sdk. -->
@@ -267,6 +269,38 @@
       }
     }
 
+    // gets a dom path from an element so that it can be referred to in another HTML tree
+    // leveraging the work done here https://stackoverflow.com/questions/5728558/get-the-dom-path-of-the-clicked-a
+    function getDomPath(el) {
+      var stack = [];
+      while ( el.parentNode != null ) {
+        console.log(el.nodeName);
+        var sibCount = 0;
+        var sibIndex = 0;
+        for ( var i = 0; i < el.parentNode.childNodes.length; i++ ) {
+          var sib = el.parentNode.childNodes[i];
+          if ( sib.nodeName == el.nodeName ) {
+            if ( sib === el ) {
+              sibIndex = sibCount;
+            }
+            sibCount++;
+          }
+        }
+        if ( el.hasAttribute('id') && el.id != '' ) {
+          stack.unshift(el.nodeName.toLowerCase() + '#' + el.id);
+        } else if ( sibCount > 1 ) {
+          var sibIndexBase1 = sibIndex + 1;
+          stack.unshift(el.nodeName.toLowerCase() + ':nth-child(' + sibIndexBase1 + ')');
+        } else {
+          stack.unshift(el.nodeName.toLowerCase());
+        }
+        el = el.parentNode;
+      }
+
+      return stack.slice(1); // removes the html element
+    }
+
+
     document.addEventListener("DOMContentLoaded", function () {
       startSynthesisAsyncButton = document.getElementById("startSynthesisAsyncButton");
       updateVoiceListButton = document.getElementById("updateVoiceListButton");
@@ -294,9 +328,28 @@
             }
           }
           if (wordBoundary !== undefined) {
-            highlightDiv.innerHTML = synthesisText.value.substr(0, wordBoundary.textOffset) +
-                    "<span class='highlight'>" + wordBoundary.text + "</span>" +
-                    synthesisText.value.substr(wordBoundary.textOffset + wordBoundary.wordLength);
+
+            // MORE EFFIFICENT WAY, REPLACES ONLY INNERHTML OF PARENT NODE
+            // NEEDS FURTHER TESTING
+            var parser = new DOMParser();
+            var currentHTMLBody = parser.parseFromString(document.body.innerHTML, "text/html");
+
+            currentHTMLBody.getElementById("highlightDiv").innerHTML = synthesisText.value.substr(0, wordBoundary.textOffset) +
+                     "<span id='highlight-span' class='highlight'>" + wordBoundary.text + "</span>" +
+                     synthesisText.value.substr(wordBoundary.textOffset + wordBoundary.wordLength);
+
+            var domPathOfParent = getDomPath(currentHTMLBody.getElementById("highlight-span").parentElement);
+            
+            //if highlight already exists in page, remove it
+            if(document.getElementById("highlight-span") !== null){
+              document.getElementById("highlight-span").replaceWith(document.getElementById("highlight-span").innerHTML)
+            }
+            document.body.querySelector(domPathOfParent.join(" > ")).innerHTML = currentHTMLBody.getElementById("highlight-span").parentElement.innerHTML;
+
+            // ALTERNATIVE WAY REPLACING ENTIRE INNERHTML
+            // highlightDiv.innerHTML = synthesisText.value.substr(0, wordBoundary.textOffset) +
+            //         "<span class='highlight'>" + wordBoundary.text + "</span>" +
+            //         synthesisText.value.substr(wordBoundary.textOffset + wordBoundary.wordLength);
           } else {
             highlightDiv.innerHTML = synthesisText.value;
           }
