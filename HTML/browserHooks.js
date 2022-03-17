@@ -52,6 +52,8 @@ document.addEventListener("DOMContentLoaded", function () {
     updateVoiceListButton = document.getElementById("updateVoiceListButton");
     pauseButton = document.getElementById("pauseButton");
     resumeButton = document.getElementById("resumeButton");
+    var skipAheadButton = document.getElementById("skipAheadButton");
+    var skipBackButton = document.getElementById("skipBackButton");
     subscriptionKey = document.getElementById("subscriptionKey");
     regionOptions = document.getElementById("regionOptions");
     resultsDiv = document.getElementById("resultsDiv");
@@ -149,6 +151,33 @@ document.addEventListener("DOMContentLoaded", function () {
         resumeButton.disabled = true;
     });
 
+    //set skip ahead button
+    skipAheadButton.addEventListener("click", function () {
+        player.pause();
+        textNodeIndex += 1;
+        continueReading();
+    });
+
+    //set skip back button
+    skipBackButton.addEventListener("click", function () {
+        player.pause();
+        textNodeIndex -= 1;
+        continueReading();
+    });
+
+    //helper method to continue reading
+    function continueReading(){
+        if(textNodeIndex < trimmedTextNodes.length){
+            synthesizeMain();
+            pauseButton.disabled = false;
+            resumeButton.disabled = true;
+        }
+        else{
+            removeExistingHighlight();
+            textNodeIndex = 0;
+        }
+    }
+
     function synthesizeMain() {
         resultsDiv.innerHTML = "";
         eventsDiv.innerHTML = "";
@@ -175,13 +204,7 @@ document.addEventListener("DOMContentLoaded", function () {
             wordBoundaryList = [];
 
             textNodeIndex += 1;
-            if(textNodeIndex < trimmedTextNodes.length){
-                synthesizeMain();
-            }
-            else{
-                removeExistingHighlight();
-                textNodeIndex = 0;
-            }
+            continueReading();
         };
 
         function createSynth(){
