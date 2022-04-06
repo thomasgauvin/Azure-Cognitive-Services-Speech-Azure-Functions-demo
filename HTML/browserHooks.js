@@ -62,39 +62,20 @@ document.addEventListener("DOMContentLoaded", function () {
     isSsml = document.getElementById("isSSML");
     talkingHeadDiv = document.getElementById("talkingHeadDiv");
     highlightDiv = document.getElementById("highlightDiv");
+    speed = document.getElementById("speed");
 
     //the following lines are used to keep state of the clone DOM tree
     textNodeIndex = 0;
     trimmedTextNodes = extractTextNodes(document.getElementById('main')); 
 
     //set highlight text & highlighted portion
-    setInterval(function () {
-        if (player !== undefined) {
-            const currentTime = player.currentTime;
-            var wordBoundary;
-            for (const e of wordBoundaryList) {
-                if (currentTime * 1000 > e.audioOffset / 10000) {
-                wordBoundary = e;
-                } else {
-                break;
-                }
-            }
-            if (wordBoundary !== undefined) {
+    highlightInterval = setHighlightingInterval();
 
-                //remove existing highlight (required to remove highlighting from previous word when moving on to next node)
-                removeExistingHighlight();
+    //reset player on speed change
+    speed.addEventListener("change", resetPlayer)
 
-                nodeInOriginalTree = trimmedTextNodes[textNodeIndex];
-                //replace current tree node with clone tree node, highlighting the current word
-                nodeInOriginalTree.innerHTML = nodeInOriginalTree.innerHTML.substr(0, wordBoundary.textOffset - getSsmlPrependLength()) +
-                        "<span id='highlight-span' class='highlight'>" + wordBoundary.text + "</span>" +
-                        nodeInOriginalTree.innerHTML.substr(wordBoundary.textOffset + wordBoundary.wordLength - getSsmlPrependLength());
-
-            } else {
-                highlightDiv.innerHTML = synthesisText.value;
-            }
-        }
-    }, 100);
+    //reset player on voice change
+    voiceOptions.addEventListener("change", resetPlayer)
 
     //get list of voices
     updateVoiceListButton.addEventListener("click", function () {
@@ -165,6 +146,17 @@ document.addEventListener("DOMContentLoaded", function () {
         continueReading();
     });
 
+    //function to reset player
+    function resetPlayer() {
+        player.pause();
+        clearInterval(highlightInterval);
+        setTimeout(() => {
+            removeExistingHighlight();
+            resetTTSButtons();
+            highlightInterval = setHighlightingInterval();
+        }, 101);
+    }
+    
     //helper method to continue reading
     function continueReading(){
         if(textNodeIndex < trimmedTextNodes.length){
@@ -179,6 +171,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function synthesizeMain() {
+        ssmlPrependLength = getSsmlPrependLength();
         resultsDiv.innerHTML = "";
         eventsDiv.innerHTML = "";
         wordBoundaryList = [];
@@ -332,10 +325,11 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
+
 //helper method to extract text nodes from a node
 function extractTextNodes(node) {
     //extract all elements with block level tag
-    var blockLevelTags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'ol', 'ul', 'pre', 'blockquote'];
+    var blockLevelTags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'pre', 'blockquote'];
     var textNodes = [];
     if (node.nodeType === 3) {
         textNodes.push(node);
@@ -360,12 +354,12 @@ function extractTextNodes(node) {
 
 //helper method to get ssmlprepend content
 function getSsmlPrepend(){
-    return "<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'>" + "<voice name='" + voiceOptions.value + "'>";
+    return "<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'>" + "<voice name='" + voiceOptions.value + "'> <prosody rate='"+ ((document.getElementById("speed").value * 100)-100) +"%'>";
 }
 
 //helper method to get ssmlappend content
 function getSsmlAppend(){
-    return "</voice></speak>";
+    return "</prosody></voice></speak>";
 }
 
 //helper method to get ssmlprepend length
@@ -381,3 +375,42 @@ function removeExistingHighlight(){
         parent.normalize();
     }
 }
+
+//helper method to set highlighting, refreshing every 100ms
+function setHighlightingInterval(){
+    return setInterval(function () {
+        if (player !== undefined && !player.privIsPaused) {
+            const currentTime = player.currentTime;
+            var wordBoundary;
+            for (const e of wordBoundaryList) {
+                if (currentTime * 1000 > e.audioOffset / 10000) {
+                wordBoundary = e;
+                } else {
+                break;
+                }
+            }
+            if (wordBoundary !== undefined) {
+
+                //remove existing highlight (required to remove highlighting from previous word when moving on to next node)
+                removeExistingHighlight();
+
+                nodeInOriginalTree = trimmedTextNodes[textNodeIndex];
+                //replace current tree node with clone tree node, highlighting the current word
+                nodeInOriginalTree.innerHTML = nodeInOriginalTree.innerHTML.substr(0, wordBoundary.textOffset - ssmlPrependLength) +
+                        "<span id='highlight-span' class='highlight'>" + wordBoundary.text + "</span>" +
+                        nodeInOriginalTree.innerHTML.substr(wordBoundary.textOffset + wordBoundary.wordLength - ssmlPrependLength);
+
+            } else {
+                highlightDiv.innerHTML = synthesisText.value;
+            }
+        }
+    }, 100);
+}
+
+//helper method to enable start synthesis button, enable pause button, disable resume button
+function resetTTSButtons(){
+    startSynthesisAsyncButton.disabled = false;
+    pauseButton.disabled = true;
+    resumeButton.disabled = true;
+}
+
