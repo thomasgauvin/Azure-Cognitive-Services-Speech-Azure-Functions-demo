@@ -337,6 +337,7 @@
   // An authorization token is a more secure method to authenticate for a browser deployment as
   // it allows the subscription keys to be kept secure on a server and a 10 minute use token to be
   // handed out to clients from an endpoint that can be protected from unauthorized access.
+
   var authorizationEndpoint = "http://localhost:7071/api/TTSAuthorizationToken";
 
   async function RequestAuthorizationToken() {
@@ -352,7 +353,16 @@
 
         console.log('Token fetched from back-end: ' + token);
       } catch (err) {
-        console.log(err);
+        //retry with deployed endpoint
+        const res = await fetch("/api/TTSAuthorizationToken");
+        const data = await res.json()
+        console.log(data);
+        const token = data.token;
+        const region = data.region;
+        regionOptions.value = region;
+        authorizationToken = token;
+
+        console.log('Token fetched from back-end: ' + token);
       }
     }
   }
