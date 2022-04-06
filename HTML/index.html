@@ -352,7 +352,16 @@
 
         console.log('Token fetched from back-end: ' + token);
       } catch (err) {
-        console.log(err);
+        //retry with deployed endpoint
+        const res = await fetch("/api/TTSAuthorizationToken");
+        const data = await res.json()
+        console.log(data);
+        const token = data.token;
+        const region = data.region;
+        regionOptions.value = region;
+        authorizationToken = token;
+
+        console.log('Token fetched from back-end: ' + token);
       }
     }
   }
