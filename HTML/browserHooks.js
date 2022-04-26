@@ -159,7 +159,7 @@ document.addEventListener("DOMContentLoaded", function () {
     
     //helper method to continue reading
     function continueReading(){
-        if(textNodeIndex < trimmedTextNodes.length){
+        if(textNodeIndex < trimmedTextNodes.length && textNodeIndex >= 0){
             synthesizeMain();
             pauseButton.disabled = false;
             resumeButton.disabled = true;
@@ -167,6 +167,7 @@ document.addEventListener("DOMContentLoaded", function () {
         else{
             removeExistingHighlight();
             textNodeIndex = 0;
+            resetTTSButtons();
         }
     }
 
